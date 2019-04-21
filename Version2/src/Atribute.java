@@ -1,14 +1,15 @@
 import java.util.LinkedHashSet;
+import java.util.ArrayList;
 
 public class Atribute{
     String atribute; //Atribute name
-    LinkedHashSet<String> values=new LinkedHashSet<>(); //all possible values for atribute
-    public Atribute(String atribute,LinkedHashSet<String>values){
+    ArrayList<String> values; //all possible values for atribute
+    public Atribute(String atribute,ArrayList<String>values){
         this.atribute=atribute;
         this.values=values;
     }
     
-    public boolean isContinuos(){
+    public boolean isContinuous(){
         for(String str : values){
             try {
                 Double.parseDouble(str);
@@ -20,7 +21,7 @@ public class Atribute{
         return false;            
     }
     public String getAtribute(){return atribute;};
-    public LinkedHashSet<String> getAtributeVals(){return values;}
+    public ArrayList<String> getAtributeVals(){return values;}
     public boolean validValue(String value){return values.contains(value);}
     public String toString(){
         String s="<"+atribute+"> = [";

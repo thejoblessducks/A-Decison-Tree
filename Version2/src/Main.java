@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Scanner;
+import java.util.Collections;
+
 public class Main{
     public static Scanner in = new Scanner(System.in);
 
@@ -110,27 +112,39 @@ public class Main{
         LinkedHashSet<Atribute> atributes_set=new LinkedHashSet<>();
         int i=0;
         for(String atribute_name : atributes){
-            LinkedHashSet<String> values=new LinkedHashSet<>();
+            ArrayList<String> values=new ArrayList<>();
             for(int r=1;r<DATA.length;r++)
-                values.add(DATA[r][i]);
+                if(!values.contains(DATA[r][i]))
+                    values.add(DATA[r][i]);
+            try {
+                //data of atribute is continuous
+                ArrayList<Double> continuous = new ArrayList<>();
+                for(String val : values)
+                    continuous.add(Double.parseDouble(val));
+                
+                Collections.sort(continuous);
+                //System.out.println(continuous);
+                //Calculates the mid points in data
+                ArrayList<Double> average = new ArrayList<>();
+                double avg=0;
+                for(int j=1; j<continuous.size();j++){
+                    avg=(double)((continuous.get(j-1)+continuous.get(j))/2);
+                    average.add(avg);
+                }
+                Collections.sort(average);
+                continuous.clear();
+                continuous=average;
+                values.clear();
+                for(Double val : continuous)
+                    values.add(""+val);
+            } catch (NumberFormatException e){}
             Atribute atribute = new Atribute(atribute_name, values);
             atributes_set.add(atribute);
             i++;
         }
         return atributes_set;
     }
-
-    public static ArrayList<String> makeClasses(){
-        ArrayList<String> classes=new ArrayList<>();
-        int index=DATA[0].length-1;
-        //System.out.print("Classification <"+DATA[0][index]+"> : ");
-        for(int r=1;r<DATA.length;r++){
-            if(!classes.contains(DATA[r][index]))
-                classes.add(DATA[r][index]);
-        }
-        //System.out.println(classes);
-        return classes;
-    }
+    
     public static ArrayList<DataEntry> makeDataSet(String[] atributes){
         int index=DATA[0].length-1;
         ArrayList<DataEntry> data_set=new ArrayList<>();
@@ -164,18 +178,16 @@ public class Main{
         //Create set of atributes
             LinkedHashSet<Atribute> atributes_set=makeAtributeSet(atributes);
                    
-        //create classes
-            ArrayList<String> classes=makeClasses();
-
         //entry exploration
             ArrayList<DataEntry> data_set=makeDataSet(atributes);
 
-        System.out.println("\nBuilding DecisionTree:");
-            DecisionTree tree = new DecisionTree(data_set, data_set, classes, atributes_set);
-            tree.buildTree();
-            tree.printTree();
+        DecisionTree tree = new DecisionTree(data_set, data_set, atributes_set);
+        tree.buildTree();
+        tree.prunTree();
+        tree.printTree();
 
-        System.out.println("\n\n\n"+tree);
+        
+            //System.out.println("\n\n\n"+tree);
 
     }
     public static void showOptions() {
