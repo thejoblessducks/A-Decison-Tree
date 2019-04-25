@@ -1,3 +1,5 @@
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -141,10 +143,19 @@ public class DecisionTree{
         }
         return gain;
     }
+    public double round(String val, int places){
+        if(places<0) throw new IllegalArgumentException();
+        BigDecimal bd = new BigDecimal(val);
+        bd = bd.setScale(places,RoundingMode.HALF_UP);
+        return bd.doubleValue();
+    }
     public BestSplit bestAtributeToSplit(){
+        Random rand = new Random();
         double max_info_gain=Double.MIN_VALUE;
         double set_entropy=dataEntropy(data_set);
-        Atribute split_on=null;
+        ArrayList<Atribute> at = new ArrayList<>();
+        for(Atribute a : atributes) at.add(a);
+        Atribute split_on=at.get(rand.nextInt(at.size()));
         String split_value="";
 
         for(Atribute atribute : atributes){
@@ -156,31 +167,18 @@ public class DecisionTree{
                     if(info_gain > max_info_gain){
                         max_info_gain=info_gain;
                         split_on=atribute;
-                        split_value=value;
+                        split_value=""+round(value,4);
                     }
                 }
             }
             else{
-                /*double gain=atributeInfoGainCategorical(atribute,data_set);
+                double gain=atributeInfoGainCategorical(atribute,data_set);
                 double info_gain=set_entropy-gain;
                 if(info_gain > max_info_gain){
                     max_info_gain=info_gain;
                     split_on=atribute;
                     split_value="";
-                }*/
-                double gain=0;
-                double info_gain=0;
-                for(String value : atribute.getAtributeVals()){
-                    DataDivision data_divided= splitData(atribute,value);
-                    gain+=overallEntropy(data_divided.getBelow(),data_divided.getAbove());
                 }
-                info_gain=set_entropy -  gain;
-                if(info_gain > max_info_gain){
-                    max_info_gain=info_gain;
-                    split_on=atribute;
-                    split_value="";
-                }
-
             }
         }
         return new BestSplit(split_on,split_value);
@@ -190,8 +188,25 @@ public class DecisionTree{
          * Given a data entry, that is, a line of data we will travel through the
          *  tree in order to classify it 
         **/
-        if(classification=="")
-            return descendents.get(data.getAtributeVal(split.getBestSplit().getAtribute())).classify(data);
+        if(classification==""){
+            String s=data.getAtributeVal(split.getBestSplit().getAtribute());
+            if(split.getBestSplit().isContinuous()){
+                for(String key : descendents.keySet()){
+                        String[] node = key.split(" ");
+                        if(node[0].equals("<=") && Double.parseDouble(s) <= Double.parseDouble(node[1]))
+                            return descendents.get(key).classify(data);
+                        else if(node[0].equals(">") && Double.parseDouble(s) > Double.parseDouble(node[1]))
+                            return descendents.get(key).classify(data);
+                }
+            }
+            else{
+                for(String key : descendents.keySet()){
+                    String[] node = key.split(" ");
+                    if(s.equals(node[1]))
+                        return descendents.get(key).classify(data);
+                }
+            }
+        }
         return classification;
     }
 
@@ -204,46 +219,58 @@ public class DecisionTree{
             this.classification=mostCommonTarget(data_set);
         else{
             split = bestAtributeToSplit();
-            if(split.getBestSplit().isContinuous()){
-                DataDivision data_divided = splitData(split.getBestSplit(), split.getBestValue());
+            if(split.getBestSplit() !=null && split.getBestSplit().isContinuous()){
+                String value = split.getBestValue();
+                DataDivision data_divided = splitData(split.getBestSplit(), value);
 
                 LinkedHashSet<Atribute> left_atributes=new LinkedHashSet<Atribute>(atributes);
                 LinkedHashSet<Atribute> right_atributes=new LinkedHashSet<Atribute>(atributes);
 
                 left_atributes.remove(split.getBestSplit());
                 right_atributes.remove(split.getBestSplit());
-                
-                
+                    
+                    
                 ArrayList<DataEntry> above = new ArrayList<>(data_divided.getAbove());
                 ArrayList<DataEntry> below = new ArrayList<>(data_divided.getBelow());
 
                 DecisionTree left_tree=new DecisionTree(below, data_set, left_atributes);
                 DecisionTree right_tree=new DecisionTree(above, data_set, right_atributes);
-                
+                    
                 left_tree.buildTree();
                 right_tree.buildTree();
 
                 String right="", left="";
-                left="<= "+ split.getBestValue();
-                right="> "+split.getBestValue();
-                descendents.put(left,left_tree);
-                descendents.put(right,right_tree);
+                left="<= "+ value;
+                right="> "+ value;
+
+                String c_r = (data_divided.getAbove().size() !=0 ? " (counter:"+data_divided.getAbove().size()+")" : "");
+                String c_l = (data_divided.getBelow().size() !=0 ? " (counter:"+data_divided.getBelow().size()+")" : "");
+                
+                descendents.put(left+c_l,left_tree);
+                descendents.put(right+c_r,right_tree);
             }
             else{
                 for(String possible_value : split.getBestSplit().getAtributeVals()){
                     ArrayList<DataEntry> sub_data_set=new ArrayList<>();
-                    for(DataEntry data : data_set){
+                    for(DataEntry data : data_set)
                         if(data.getAtributeVal(split.getBestSplit().getAtribute()).equals(possible_value))
                                 sub_data_set.add(data);
-                    }
 
                     LinkedHashSet<Atribute> sub_atributes=new LinkedHashSet<Atribute>(atributes);
                     sub_atributes.remove(split.getBestSplit());
     
                     DecisionTree sub_tree=new DecisionTree(sub_data_set, data_set, sub_atributes);
                 
+                    int count=0;
+                    for(DataEntry data : data_set){
+                        if(data.getAtributeVal(split.getBestSplit().getAtribute()).equals(possible_value))
+                            count++;
+                    }
+                    String s = (count!=0 ? " (counter:"+count+")" : "");
+
                     sub_tree.buildTree();
-                    descendents.put(possible_value,sub_tree);
+                    
+                    descendents.put("= "+possible_value+s,sub_tree);
                 }
             }
         }
@@ -262,22 +289,12 @@ public class DecisionTree{
 			while (it.hasNext()) {
 				String key = it.next();
                 if (it.hasNext()) {  // more to come
-                    if(split.getBestSplit().isContinuous()/* && descendents.get(key).classification!=""*/){
-                        System.out.printf("%s    |  %s:\n", prefix, key);
-                    }
-                    else if(descendents.get(key).classification!=""){
-                        System.out.printf("%s    |  = %s:\n", prefix, key);
-                }
-                    if(descendents.get(key).classification!="")
-					    descendents.get(key).printTree(prefix + "    | ");
+                    System.out.printf("%s    |  %s:\n", prefix, key);
+                    descendents.get(key).printTree(prefix + "    | ");
 				}
 				else {  // last one
                     System.out.printf("%s     \\\n", prefix);
-                    if(split.getBestSplit().isContinuous())
-                        System.out.printf("%s       %s:\n", prefix, key);
-                    else 
-                        System.out.printf("%s       = %s:\n", prefix, key);
-
+                    System.out.printf("%s       %s:\n", prefix, key);
 					descendents.get(key).printTree(prefix + "      ");
 				}
 			}

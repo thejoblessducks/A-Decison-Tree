@@ -17,6 +17,11 @@ public class DataEntry{
         for(String atribute : atributes)
             entry_values.put(atribute,vals[i++]);
     }
+    public DataEntry(String[]atributes,String[] vals){
+        int i=0;
+        for(String atribute : atributes)
+            entry_values.put(atribute,vals[i++]);
+    }
 
     public String getAtributeVal(String atribute){
         return entry_values.get(atribute);

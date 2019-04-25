@@ -162,6 +162,19 @@ public class Main{
         return data_set;
     }
 
+    public static DataEntry makeTest(String[] atributes){
+        ArrayList<String> values = new ArrayList<>();
+        System.out.println("Give test line:");
+        String s = in.nextLine();
+        String[] data = s.split(",");
+        for(int c=0;c<atributes.length;c++)
+            values.add(data[c]);
+        data=new String[values.size()];
+        int i=0;
+        for(String val : values) data[i++]=val;
+        DataEntry entry = new DataEntry(atributes,data);
+        return entry;
+    }
     public static void buildTree(){
         File[] listOfFiles = displayFiles("CSV");
         int i=in.nextInt();
@@ -185,9 +198,12 @@ public class Main{
         tree.buildTree();
         tree.printTree();
 
-        
-            //System.out.println("\n\n\n"+tree);
-
+        System.out.print("Want to test (yes/no):");
+        while(!(s=in.nextLine()).equals("no")){
+            if(s.equals("yes"))
+                System.out.println("\nClassification: "+tree.classify(makeTest(atributes)));
+            System.out.println("\nWant to test (yes/no)");
+        }
     }
     public static void showOptions() {
         System.out.println("What do you whant to do?");
