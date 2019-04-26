@@ -1,8 +1,10 @@
 public class Main{
     public static void main(String[] args){
-        if(args.length != 2)
+        System.out.println(args[0]);
+        System.out.println(args.length);
+        if(args.length != 1)
             new TreeBuilder(false,null);
         else
-            new TreeBuilder(true,args[1]);
+            new TreeBuilder(true,args[0]);
     }
 }

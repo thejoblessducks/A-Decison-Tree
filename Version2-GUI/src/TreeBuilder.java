@@ -14,19 +14,19 @@ public class TreeBuilder{
     public static String[][] DATA;
     public static int rows,cols;
     public static String atribute_type;
-    
-    
+
+
     TreeBuilder(boolean test_file,String test_file_name){
-        showOptions(test_file,test_fine_name);
+        showOptions(test_file,test_file_name);
     }
 
     public static void showOptions(boolean test,String filename) {
         System.out.println("What do you whant to do?");
         System.out.println("1)Build Tree;\n2)exit;");
         switch(in.nextInt()){
-            case 1: 
+            case 1:
                 buildTree(test,filename);
-                System.exit(0);                
+                System.exit(0);
             break;
             case 2: System.exit(0);break;
             default:
@@ -40,17 +40,17 @@ public class TreeBuilder{
         int i=in.nextInt();
         String str=listOfFiles[i-1].getName();
         String s=str.substring(0, str.lastIndexOf('.'));
-                
+
         System.out.println("Building tree for "+s);
         readFile("../CSV/"+str);
         //printDataSetArray(DATA);
 
         //Create atributes array
             String[] atributes=makeAtributeArray();
-                
+
         //Create set of atributes
             LinkedHashSet<Atribute> atributes_set=makeAtributeSet(atributes);
-                   
+
         //entry exploration
             ArrayList<DataEntry> data_set=makeDataSet(atributes);
 
@@ -60,6 +60,7 @@ public class TreeBuilder{
         new TreeFrame(tree,DATA[0][DATA[0].length-1],s);
 
         if(test){
+            System.out.println();
             ArrayList<DataEntry> data_to_test = prepareTestFile(filename, atributes);
             for(DataEntry entry : data_to_test)
                 System.out.println("Classification: "+tree.classify(entry));
@@ -79,7 +80,7 @@ public class TreeBuilder{
         delimitDataSet(filename);
 
         File file = new File(filename);
-        try {   
+        try {
             Scanner filein = new Scanner(file);
             String[] data=filein.next().split(",");
             int r=0;
@@ -180,7 +181,7 @@ public class TreeBuilder{
                 ArrayList<Double> continuous = new ArrayList<>();
                 for(String val : values)
                     continuous.add(Double.parseDouble(val));
-                
+
                 Collections.sort(continuous);
                 //System.out.println(continuous);
                 //Calculates the mid points in data
@@ -203,18 +204,18 @@ public class TreeBuilder{
         }
         return atributes_set;
     }
-    
+
     public static ArrayList<DataEntry> makeDataSet(String[] atributes){
         int index=DATA[0].length-1;
         ArrayList<DataEntry> data_set=new ArrayList<>();
         for(int r=1;r<DATA.length;r++){
             ArrayList<String> values=new ArrayList<>();
             for(int c=0;c<index;c++) values.add(DATA[r][c]);
-            
+
             String[] data_values = new String[values.size()];
             int i=0;
             for(String val : values) data_values[i++]=val;
-            
+
             DataEntry data= new DataEntry(DATA[r][index], atributes, data_values);
             data_set.add(data);
         }
@@ -242,12 +243,12 @@ public class TreeBuilder{
         for(String val : values) data[i++]=val;
         DataEntry entry = new DataEntry(atributes,data);
         return entry;
-    } 
-    
+    }
+
     public static ArrayList<DataEntry> prepareTestFile(String filename,String[] atributes){
         File file = new File(filename);
         ArrayList<DataEntry> test_data = new ArrayList<>();
-        try {   
+        try {
             Scanner filein = new Scanner(file);
             String []data;
             filein.next(); //remove first line (header)
@@ -257,7 +258,7 @@ public class TreeBuilder{
 
                for(int i=0,j=1;j<data.length;i++,j++)
                    test_line[i]=data[j];
-               DataEntry ebtry = new DataEntry(atributes,test_line);
+               DataEntry entry = new DataEntry(atributes,test_line);
                test_data.add(entry);
             }
             filein.close();
