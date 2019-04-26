@@ -167,6 +167,15 @@ public class Main{
         System.out.println("Give test line:");
         String s = in.nextLine();
         String[] data = s.split(",");
+        if(data.length < atributes.length || data.length > atributes.length){
+            String ex="";
+            for(int i=0; i<atributes.length-1;i++) ex+=atributes[i]+",";
+            ex+=atributes[atributes.length-1];
+            System.out.println("Invalid format, you gave:"+s+"\nShould have given [\""+ex+"\"]");
+            System.out.println("Try again");
+            return makeTest(atributes);
+        }
+
         for(int c=0;c<atributes.length;c++)
             values.add(data[c]);
         data=new String[values.size()];
@@ -198,23 +207,29 @@ public class Main{
         tree.buildTree();
         tree.printTree();
 
-        System.out.print("Want to test (yes/no):");
-        while(!(s=in.nextLine()).equals("no")){
-            if(s.equals("yes"))
-                System.out.println("\nClassification: "+tree.classify(makeTest(atributes)));
-            System.out.println("\nWant to test (yes/no)");
+        try {
+            while(!(s=in.nextLine()).equals("no")){
+                if(s.equals("yes"))
+                    System.out.println("\nClassification: "+tree.classify(makeTest(atributes)));
+                System.out.println("\nWant to test (yes/no)");
+            }
+        } catch (Exception e) {
+            System.out.println("Error, terminating program");
         }
     }
     public static void showOptions() {
         System.out.println("What do you whant to do?");
-        System.out.println("1)Build Tree;\n2)Test existing Tree;\n3)exit;");
+        System.out.println("1)Build Tree;\n2)exit;");
         switch(in.nextInt()){
             case 1: 
                 buildTree();
                 System.exit(0);                
             break;
-            case 2:
-            default: System.exit(0);
+            case 2: System.exit(0);break;
+            default:
+                System.out.println("Invalid option");
+                System.exit(0);
+            break;
         }
     }
     public static void main(String[] args){
