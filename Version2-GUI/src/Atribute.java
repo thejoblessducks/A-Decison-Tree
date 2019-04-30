@@ -1,7 +1,13 @@
 import java.util.LinkedHashSet;
 import java.util.ArrayList;
-
+/*------------------------------------------------------------------------------
+Class Atribute
+------------------------------------------------------------------------------*/
 public class Atribute{
+    /*
+     * Represents an atribute
+     * Contains the name of the atribute and all its possible values 
+     */
     String atribute; //Atribute name
     ArrayList<String> values; //all possible values for atribute
     public Atribute(String atribute,ArrayList<String>values){
@@ -10,6 +16,7 @@ public class Atribute{
     }
     
     public boolean isContinuous(){
+        //Verify is the values in the atribute are continuous or not
         for(String str : values){
             try {
                 Double.parseDouble(str);
