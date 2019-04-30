@@ -9,8 +9,15 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Collections;
 
-
+/*------------------------------------------------------------------------------
+Auxiliar Class DataDivision
+------------------------------------------------------------------------------*/
 class DataDivision{
+    /*
+     * Will store the dada after a slit, that is, the data below the split (data
+     *      equal or less than the split value) and the data above the split (
+     *      not equal or bigger) 
+     */
     ArrayList<DataEntry> data_above_split;
     ArrayList<DataEntry> data_below_split;
 
@@ -22,7 +29,14 @@ class DataDivision{
     public ArrayList<DataEntry> getAbove(){return data_above_split;}
     public ArrayList<DataEntry> getBelow(){return data_below_split;}
 }
+/*------------------------------------------------------------------------------
+Auxiliar Class BestSplit
+------------------------------------------------------------------------------*/
 class BestSplit{
+    /*
+     * Will store the atribute to split the data and, if the atribute is
+     *      continuous, the value where to split 
+     */
     String split_value;
     Atribute split;
 
@@ -35,22 +49,37 @@ class BestSplit{
     public String getBestValue(){return split_value;}
 }
 
-
+/*------------------------------------------------------------------------------
+DecisionTree Class
+------------------------------------------------------------------------------*/
 public class DecisionTree{
+    /*
+     * This class represents a node in the decision tree and has capabilities of
+     *      creating child nodes, using the ID3 algorithm.
+     * The class stores the parent_data_set that is the data_set used to build 
+     *      the parent node if it exists, the data_set used in the current node
+     *      a set of atributes yet to split and a Hashmap for all its children
+     *      (tree nodes)
+     */
     ArrayList<DataEntry> parent_data_set;
     ArrayList<DataEntry> data_set;
     LinkedHashSet<Atribute> atributes;    
     HashMap<String,DecisionTree> descendents = new HashMap<>();
-    BestSplit split=null;
-    String classification="";
+    BestSplit split=null; //stores the split for this node
+    String classification=""; //stores the classification of this node, if leaf
 
     public DecisionTree(ArrayList<DataEntry> data,ArrayList<DataEntry> parent_data,LinkedHashSet<Atribute>atributes){
         this.data_set=data;
         this.parent_data_set=parent_data;
         this.atributes=atributes;
     }
+
     public BestSplit getSplit(){return split;}
     public boolean isPure(ArrayList<DataEntry> data_set){
+        /*
+         * Checks if data is pure that is, if all the values in the given data_ste
+         *      have the same classification
+         */
         String s=null;
         for(DataEntry data: data_set){
             if(s==null)
@@ -63,6 +92,9 @@ public class DecisionTree{
         return true;
     }
     public String mostCommonTarget(ArrayList<DataEntry> data_set){
+        /*
+         * Returns the classification that occurs most often in the given data 
+         */
         HashMap<String,Integer> corresondance=new HashMap<>();
         for(DataEntry data : data_set){
             if(!corresondance.containsKey(data.getClassification())){
@@ -74,6 +106,9 @@ public class DecisionTree{
         return Collections.max(corresondance.entrySet(),Map.Entry.comparingByValue()).getKey();
     }
     public double dataEntropy(ArrayList<DataEntry> data_set){
+        /*
+         * Calculates the entropy of a given data_set 
+         */
         double sum=0;
         HashMap<String,Integer> count = new HashMap<>();
         for(DataEntry data : data_set){
@@ -90,6 +125,10 @@ public class DecisionTree{
         return sum;
     }
     public double overallEntropy(ArrayList<DataEntry> below,ArrayList<DataEntry> above){
+        /*
+         * Given a splited data, will calculate its overall entropy, note that
+         *  all atributes can split the data in each of its values
+         */
         int n=below.size() + above.size();
 
         double p_below = (double)((double)below.size()/n);
@@ -99,6 +138,10 @@ public class DecisionTree{
         return gain;
     }
     public DataDivision splitData(Atribute atribute, String value){
+        /*
+         * Given an atribute and one of its values to split on, this method splits
+         *      the data in two major grups,the data above/below the value 
+         */
         ArrayList<DataEntry> above = new ArrayList<>();
         ArrayList<DataEntry> below = new ArrayList<>();
         if(atribute.isContinuous()){
@@ -118,6 +161,9 @@ public class DecisionTree{
         return new DataDivision(above, below);
     }
     public double atributeInfoGainCategorical(Atribute atribute,ArrayList<DataEntry> data_set){
+        /*
+         * Calculates the information gain of a categorical atribute 
+         */
         double gain=0;
         int n=data_set.size();
         for(String atribute_value : atribute.getAtributeVals()){
@@ -144,12 +190,19 @@ public class DecisionTree{
         return gain;
     }
     public double round(String val, int places){
+        /*
+         * rounds the value of atribute to ease presentation 
+         */
         if(places<0) throw new IllegalArgumentException();
         BigDecimal bd = new BigDecimal(val);
         bd = bd.setScale(places,RoundingMode.HALF_UP);
         return bd.doubleValue();
     }
     public BestSplit bestAtributeToSplit(){
+        /*
+         * Finds the best atribute to split on, before searching considers the 
+         *      best atribute to be a random atribute in the data set 
+         */
         Random rand = new Random();
         double max_info_gain=Double.MIN_VALUE;
         double set_entropy=dataEntropy(data_set);
@@ -187,7 +240,7 @@ public class DecisionTree{
         /*
          * Given a data entry, that is, a line of data we will travel through the
          *  tree in order to classify it 
-        **/
+         */
         if(classification==""){
             String s=data.getAtributeVal(split.getBestSplit().getAtribute());
             if(split.getBestSplit().isContinuous()){
@@ -211,6 +264,9 @@ public class DecisionTree{
     }
 
     public void buildTree(){
+        /*
+         * ID3 algorithm 
+         */
         if(data_set.isEmpty())
             this.classification=mostCommonTarget(parent_data_set);
         else if(isPure(data_set))
