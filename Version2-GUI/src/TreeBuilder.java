@@ -15,17 +15,17 @@ public class TreeBuilder{
     public static int rows,cols;
     public static String atribute_type;
     
-
-    TreeBuilder(){
-        showOptions();
+    
+    TreeBuilder(boolean test_file,String test_file_name){
+        showOptions(test_file,test_fine_name);
     }
 
-    public static void showOptions() {
+    public static void showOptions(boolean test,String filename) {
         System.out.println("What do you whant to do?");
         System.out.println("1)Build Tree;\n2)exit;");
         switch(in.nextInt()){
             case 1: 
-                buildTree();
+                buildTree(test,filename);
                 System.exit(0);                
             break;
             case 2: System.exit(0);break;
@@ -35,7 +35,7 @@ public class TreeBuilder{
             break;
         }
     }
-    public static void buildTree(){
+    public static void buildTree(boolean test,String filename){
         File[] listOfFiles = displayFiles("CSV");
         int i=in.nextInt();
         String str=listOfFiles[i-1].getName();
@@ -59,14 +59,20 @@ public class TreeBuilder{
         tree.printTree();
         new TreeFrame(tree,DATA[0][DATA[0].length-1],s);
 
-        try {
-            while(!(s=in.nextLine()).equals("no")){
-                if(s.equals("yes"))
-                    System.out.println("\nClassification: "+tree.classify(makeTest(atributes)));
-                System.out.println("\nWant to test (yes/no)");
+        if(test){
+            ArrayList<DataEntry> data_to_test = prepareTestFile(filename, atributes);
+            for(DataEntry entry : data_to_test)
+                System.out.println("Classification: "+tree.classify(entry));
+        }else{
+            try {
+                while(!(s=in.nextLine()).equals("no")){
+                    if(s.equals("yes"))
+                        System.out.println("\nClassification: "+tree.classify(makeTest(atributes)));
+                    System.out.println("\nWant to test (yes/no)");
+                }
+            } catch (Exception e) {
+                System.out.println("Error, terminating program");
             }
-        } catch (Exception e) {
-            System.out.println("Error, terminating program");
         }
     }
     public static void readFile(String filename){
@@ -236,5 +242,26 @@ public class TreeBuilder{
         for(String val : values) data[i++]=val;
         DataEntry entry = new DataEntry(atributes,data);
         return entry;
-    }   
+    } 
+    
+    public static ArrayList<DataEntry> prepareTestFile(String filename,String[] atributes){
+        File file = new File(filename);
+        ArrayList<DataEntry> test_data = new ArrayList<>();
+        try {   
+            Scanner filein = new Scanner(file);
+            String []data;
+            filein.next(); //remove first line (header)
+            while(filein.hasNext()){
+               data=filein.next().split(",");
+               String[] test_line = new String[data.length-1];
+
+               for(int i=0,j=1;j<data.length;i++,j++)
+                   test_line[i]=data[j];
+               DataEntry ebtry = new DataEntry(atributes,test_line);
+               test_data.add(entry);
+            }
+            filein.close();
+        } catch (Exception e) {e.printStackTrace();}
+        return test_data;
+    }
 }
