@@ -8,7 +8,15 @@ import java.util.LinkedHashSet;
 import java.util.Scanner;
 import java.util.Collections;
 
+/*------------------------------------------------------------------------------
+TreeBuider class
+------------------------------------------------------------------------------*/
 public class TreeBuilder{
+    /*
+     * This class contains the basic methods to enable tree creation, from 
+     *      reading the CSV file, to constructing all the structures required 
+     *      to buid the tree 
+     */
     public static Scanner in = new Scanner(System.in);
 
     public static String[][] DATA;
@@ -21,6 +29,7 @@ public class TreeBuilder{
     }
 
     public static void showOptions(boolean test,String filename) {
+        //Main Menu
         System.out.println("What do you whant to do?");
         System.out.println("1)Build Tree;\n2)exit;");
         switch(in.nextInt()){
@@ -36,6 +45,7 @@ public class TreeBuilder{
         }
     }
     public static void buildTree(boolean test,String filename){
+        //Buider class
         File[] listOfFiles = displayFiles("CSV");
         int i=in.nextInt();
         String str=listOfFiles[i-1].getName();
@@ -43,8 +53,7 @@ public class TreeBuilder{
 
         System.out.println("Building tree for "+s);
         readFile("../CSV/"+str);
-        //printDataSetArray(DATA);
-
+        
         //Create atributes array
             String[] atributes=makeAtributeArray();
 
@@ -54,34 +63,38 @@ public class TreeBuilder{
         //entry exploration
             ArrayList<DataEntry> data_set=makeDataSet(atributes);
 
-        DecisionTree tree = new DecisionTree(data_set, data_set, atributes_set);
-        tree.buildTree();
-        tree.printTree();
-        new TreeFrame(tree,DATA[0][DATA[0].length-1],s);
+        //tree creation
+            DecisionTree tree = new DecisionTree(data_set, data_set, atributes_set);
+            tree.buildTree();
+            tree.printTree();
+            new TreeFrame(tree,DATA[0][DATA[0].length-1],s);
 
-        if(test){
-            System.out.println();
-            ArrayList<DataEntry> data_to_test = prepareTestFile(filename, atributes);
-            for(DataEntry entry : data_to_test)
-                System.out.println("Classification: "+tree.classify(entry));
-        }else{
-            try {
-                while(!(s=in.nextLine()).equals("no")){
-                    if(s.equals("yes"))
-                        System.out.println("\nClassification: "+tree.classify(makeTest(atributes)));
-                    System.out.println("\nWant to test (yes/no)");
+        //testing part
+            if(test){ //file was given => classify a set of data
+                System.out.println();
+                //create all etries for the test file 
+                    ArrayList<DataEntry> data_to_test = prepareTestFile(filename, atributes);
+                for(DataEntry entry : data_to_test) //classify every entry
+                    System.out.println("Classification: "+tree.classify(entry));
+            }else{//no file was given => one line classification (optional)
+                try {
+                    while(!(s=in.nextLine()).equals("no")){
+                        if(s.equals("yes"))
+                            System.out.println("\nClassification: "+tree.classify(makeTest(atributes)));
+                        System.out.println("\nWant to test (yes/no)");
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error, terminating program");
                 }
-            } catch (Exception e) {
-                System.out.println("Error, terminating program");
             }
-        }
     }
     public static void readFile(String filename){
         delimitDataSet(filename);
-
+        //reades the file
         File file = new File(filename);
         try {
             Scanner filein = new Scanner(file);
+            
             String[] data=filein.next().split(",");
             int r=0;
             addLine(data,r);
@@ -98,6 +111,8 @@ public class TreeBuilder{
         }
     }
     public static void delimitDataSet(String filename){
+        //Creates the DATA array, ignoring the header lines and the first column, 
+        //Since the first column is only the elements numbers they aren't required 
         int r=0,c=0;
         try {
             Scanner f = new Scanner(new BufferedReader( new FileReader(filename)));
@@ -117,10 +132,12 @@ public class TreeBuilder{
         DATA=new String[rows][cols];
     }
     public static void addLine(String[] data,int r){
+        //adds all the values of an elemnt to its line in DATA (all atributes+class)
         for(int c=1;c<data.length;c++)
             DATA[r][c-1]=data[c];
     }
     public static File[] displayFiles(String dir){
+        //Shows all the files that can be used as datasets, all files are in CSV/
         File folder = new File("../"+dir);
         File[] listOfFiles = folder.listFiles();
 
@@ -183,7 +200,6 @@ public class TreeBuilder{
                     continuous.add(Double.parseDouble(val));
 
                 Collections.sort(continuous);
-                //System.out.println(continuous);
                 //Calculates the mid points in data
                 ArrayList<Double> average = new ArrayList<>();
                 double avg=0;
@@ -223,6 +239,7 @@ public class TreeBuilder{
     }
 
     public static DataEntry makeTest(String[] atributes){
+        //Method for one line testing
         ArrayList<String> values = new ArrayList<>();
         System.out.println("Give test line:");
         String s = in.nextLine();
@@ -246,6 +263,7 @@ public class TreeBuilder{
     }
 
     public static ArrayList<DataEntry> prepareTestFile(String filename,String[] atributes){
+        //Method for CSV file testing 
         File file = new File(filename);
         ArrayList<DataEntry> test_data = new ArrayList<>();
         try {
